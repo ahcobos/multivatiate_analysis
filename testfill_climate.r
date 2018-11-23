@@ -108,12 +108,12 @@ data[data$Country=="Tajikistan",]$Continent <- "Asia"
 data[data$Country=="Turkmenistan",]$Continent <- "Asia"
 data[data$Country=="Ukraine",]$Continent <- "Europe"
 data[data$Country=="Uzbekistan",]$Continent <- "Asia"
-
 ##Ultima grafica
+
+qualitative_vars = c(3:14,16:20)
 
 ##Grafica de GDP vs Literacy
 ggplot(data = data, aes(x=GDP, y=Literacy, size=Population, color=Continent)) + geom_point(na.rm = TRUE)
-
 
 ##Codigo para sacar las proporciones de industria por continente
 regionArable<-summarise(group_by(data,Continent), Arable=mean(Arable, na.rm = TRUE),Crops=mean(Crops, na.rm = TRUE),Other=mean(Other, na.rm = TRUE))
@@ -138,17 +138,30 @@ data.quan <- data[,c(3:14,16:20)]
 head(data.quan)
 data.scaled.quan<-data.frame(sapply(data.quan, function(x){(x-mean(x, na.rm = TRUE))/sd(x, na.rm = TRUE)}))
 R.data.quan <- cor(data.scaled.quan, use="complete.obs")
-corrplot(R.data.quan, type="upper", diag = FALSE, tl.col = "black")
+corrplot(R.data.quan, type="upper", diag = FALSE, tl.col = "black" )
 
+correlated_columns <- qualitative_vars[!qualitative_vars %in% c(4,5,14,11)]
+data.correlated = data[,correlated_columns]
 #correlation vars with mean
-means = colMeans(scale(data.quan), na.rm = TRUE)
-pairs(scale(data.quan),pch=19,col=c(rep("deepskyblue2",dim(data.quan)[1]),"firebrick2"))
-pairs(rbind(scale(data.quan),means) ,pch=19,col=c(rep("deepskyblue2",dim(data.quan)[1]),"firebrick2"))
+means = colMeans(scale(data.correlated), na.rm = TRUE)
+pairs(rbind(scale(data.correlated),means) ,pch=19,col=c(rep("deepskyblue2",dim(data.correlated)[1]),"firebrick2"), lower.panel = NULL)
+
 
 #View(data)
 #descriptive
-stat.desc(dim(data[data[,c(3:14,16:20)]$Net_migration == 0,]))
+stat.desc((data[,c(3:14,16:20)]))
 
 #boxplot gdp vs continent
 boxplot(data$GDP~data$Continent,main="GDP vs Continent",xlab="",ylab="GDP",col="deepskyblue2")
 
+#significant
+cov(data[,c(3:14,16:20)], use="complete.obs")
+View(cov(data[,c(3:14,16:20)], use="complete.obs"))
+
+
+correlationPValue <- matrix(nrow=ncol(data.quan),ncol=ncol(data.quan))
+for(i in 1:ncol(data.quan)){
+  for(j in 1:ncol(data.quan)){
+    correlationPValue[i,j]<- cor.test(data.quan[,i],data.quan[,j])$p.value
+  }
+}
