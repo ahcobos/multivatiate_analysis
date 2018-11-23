@@ -1,3 +1,8 @@
+#load any required libraries
+library(ggplot2)
+library("corrplot")
+
+
 setwd("/Users/andrescobos/statistics_master/multivariate_analysis/project")
 data = read.csv("countries_of_the_world.csv", sep=",")
 View(data)
@@ -60,5 +65,26 @@ data$Deathrate <- as.numeric(sub(",", ".",as.character(data$Deathrate)))
 data$Agriculture <- as.numeric(sub(",", ".",as.character(data$Agriculture)))
 data$Industry <- as.numeric(sub(",", ".",as.character(data$Industry)))
 data$Services <- as.numeric(sub(",", ".",as.character(data$Services)))
-View(data)
+data$Country <- trimws(data$Country)
 
+
+valid_correlation_data_names = c("Population", "Area_squared_km", "Pop_dens_squared_km", 
+                           "Coastline_ratio","Net_migration", "Infant_Mortality_1000",
+                           "GDP", "Literacy", "Phones_1000", "Arable", "Crops", 
+                           "Birthrate", "Deathrate", "Agriculture", "Industry", "Services")
+
+
+
+valid_correlation_data = data[,valid_correlation_data_names]
+
+#correlation plot with circle graph
+data.quan <- data[,c(3:14,16:20)]
+head(data.quan)
+data.scaled.quan<-data.frame(sapply(data.quan, function(x){(x-mean(x, na.rm = TRUE))/sd(x, na.rm = TRUE)}))
+R.data.quan <- cor(data.scaled.quan, use="complete.obs")
+corrplot(R.data.quan, type="upper", diag = FALSE, tl.col = "black")
+
+#correlation vars with mean
+means = colMeans(scale(data.quan), na.rm = TRUE)
+pairs(scale(data.quan),pch=19,col=c(rep("deepskyblue2",dim(data.quan)[1]),"firebrick2"))
+pairs(rbind(scale(data.quan),means) ,pch=19,col=c(rep("deepskyblue2",dim(data.quan)[1]),"firebrick2"))
