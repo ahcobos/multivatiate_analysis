@@ -1,6 +1,9 @@
 #load any required libraries
+install.packages("pastecs")
 library(ggplot2)
 library("corrplot")
+library("pastecs")
+library(dplyr)
 
 
 setwd("/Users/andrescobos/statistics_master/multivariate_analysis/project")
@@ -67,6 +70,9 @@ data$Industry <- as.numeric(sub(",", ".",as.character(data$Industry)))
 data$Services <- as.numeric(sub(",", ".",as.character(data$Services)))
 data$Country <- trimws(data$Country)
 
+#add continents data
+
+
 
 valid_correlation_data_names = c("Population", "Area_squared_km", "Pop_dens_squared_km", 
                            "Coastline_ratio","Net_migration", "Infant_Mortality_1000",
@@ -76,6 +82,56 @@ valid_correlation_data_names = c("Population", "Area_squared_km", "Pop_dens_squa
 
 
 valid_correlation_data = data[,valid_correlation_data_names]
+
+
+#Include continents information
+data$Continent <- "NA"   
+data[data$Region=="ASIA(EX.NEAR_EAST)",]$Continent <- "Asia"
+data[data$Region=="EASTERN_EUROPE",]$Continent <- "Europe"
+data[data$Region=="NORTHERN_AFRICA",]$Continent <- "Africa"
+data[data$Region=="OCEANIA",]$Continent <- "Oceania"
+data[data$Region=="WESTERN_EUROPE",]$Continent <- "Europe"
+data[data$Region=="SUB-SAHARAN_AFRICA",]$Continent <- "Africa"
+data[data$Region=="LATIN_AMER.&CARIB",]$Continent <- "America"
+data[data$Region=="NEAR_EAST",]$Continent <- "Asia"
+data[data$Region=="NORTHERN_AMERICA",]$Continent <- "America"
+data[data$Region=="BALTICS",]$Continent <- "Europe"
+data[data$Country=="Armenia",]$Continent <- "Asia"
+data[data$Country=="Azerbaijan",]$Continent <- "Asia"
+data[data$Country=="Belarus",]$Continent <- "Europe"
+data[data$Country=="Georgia",]$Continent <- "Asia"
+data[data$Country=="Kazakhstan",]$Continent <- "Asia"
+data[data$Country=="Kyrgyzstan",]$Continent <- "Asia"
+data[data$Country=="Moldova",]$Continent <- "Asia"
+data[data$Country=="Russia",]$Continent <- "Europe"
+data[data$Country=="Tajikistan",]$Continent <- "Asia"
+data[data$Country=="Turkmenistan",]$Continent <- "Asia"
+data[data$Country=="Ukraine",]$Continent <- "Europe"
+data[data$Country=="Uzbekistan",]$Continent <- "Asia"
+
+##Ultima grafica
+
+##Grafica de GDP vs Literacy
+ggplot(data = data, aes(x=GDP, y=Literacy, size=Population, color=Continent)) + geom_point(na.rm = TRUE)
+
+
+##Codigo para sacar las proporciones de industria por continente
+regionArable<-summarise(group_by(data,Continent), Arable=mean(Arable, na.rm = TRUE),Crops=mean(Crops, na.rm = TRUE),Other=mean(Other, na.rm = TRUE))
+
+##Creo un dataframe que me permita generar los piecharts correctamente (necesita una estructura concreta)
+arablePlot <- data.frame("Continent"=c(rep(regionArable$Continent[1],3),rep(regionArable$Continent[2],3),
+                                       rep(regionArable$Continent[3],3),rep(regionArable$Continent[4],3),
+                                       rep(regionArable$Continent[5],3)),
+                         "Type"=rep(colnames(regionArable)[c(2:4)],5))
+
+arablePlot$Values <-c(c(regionArable[1,c(2:4)]),c(regionArable[2,c(2:4)]),
+                      c(regionArable[3,c(2:4)]),c(regionArable[4,c(2:4)]), c(regionArable[5,c(2:4)]))
+arablePlot$Values <- as.numeric(arablePlot$Values)
+
+#piechart per continent percent of terrain
+ggplot(arablePlot, aes("",Values, fill=Type, labels=Values))+geom_bar(width = 1, stat = "identity") + coord_polar("y", start=0)+facet_wrap(~Continent)+geom_text(aes(label = round(Values,2)), position = position_stack(vjust = 0.5)) 
+
+
 
 #correlation plot with circle graph
 data.quan <- data[,c(3:14,16:20)]
@@ -88,3 +144,11 @@ corrplot(R.data.quan, type="upper", diag = FALSE, tl.col = "black")
 means = colMeans(scale(data.quan), na.rm = TRUE)
 pairs(scale(data.quan),pch=19,col=c(rep("deepskyblue2",dim(data.quan)[1]),"firebrick2"))
 pairs(rbind(scale(data.quan),means) ,pch=19,col=c(rep("deepskyblue2",dim(data.quan)[1]),"firebrick2"))
+
+#View(data)
+#descriptive
+stat.desc(dim(data[data[,c(3:14,16:20)]$Net_migration == 0,]))
+
+#boxplot gdp vs continent
+boxplot(data$GDP~data$Continent,main="GDP vs Continent",xlab="",ylab="GDP",col="deepskyblue2")
+
