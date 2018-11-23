@@ -110,7 +110,8 @@ data[data$Country=="Ukraine",]$Continent <- "Europe"
 data[data$Country=="Uzbekistan",]$Continent <- "Asia"
 ##Ultima grafica
 
-qualitative_vars = c(3:14,16:20)
+qualitative_vars = colnames(data)[c(3:14,16:20)]
+
 
 ##Grafica de GDP vs Literacy
 ggplot(data = data, aes(x=GDP, y=Literacy, size=Population, color=Continent)) + geom_point(na.rm = TRUE)
@@ -140,7 +141,8 @@ data.scaled.quan<-data.frame(sapply(data.quan, function(x){(x-mean(x, na.rm = TR
 R.data.quan <- cor(data.scaled.quan, use="complete.obs")
 corrplot(R.data.quan, type="upper", diag = FALSE, tl.col = "black" )
 
-correlated_columns <- qualitative_vars[!qualitative_vars %in% c(4,5,14,11)]
+correlated_columns <- qualitative_vars[!qualitative_vars %in% c("Population","Area_squared_km", "Pop_dens_squared_km", 
+                                                                "Coastline_ratio","Crops", "Other","Industry")]
 data.correlated = data[,correlated_columns]
 #correlation vars with mean
 means = colMeans(scale(data.correlated), na.rm = TRUE)
@@ -158,10 +160,16 @@ boxplot(data$GDP~data$Continent,main="GDP vs Continent",xlab="",ylab="GDP",col="
 cov(data[,c(3:14,16:20)], use="complete.obs")
 View(cov(data[,c(3:14,16:20)], use="complete.obs"))
 
-
+#correlation matrix p value
 correlationPValue <- matrix(nrow=ncol(data.quan),ncol=ncol(data.quan))
 for(i in 1:ncol(data.quan)){
   for(j in 1:ncol(data.quan)){
     correlationPValue[i,j]<- cor.test(data.quan[,i],data.quan[,j])$p.value
   }
 }
+
+
+
+plot_ly(as.data.frame(data),x=~data$Infant_Mortality_1000,y=~data$Phones_1000,z=~data$GDP)
+
+
