@@ -1,9 +1,12 @@
 #load any required libraries
-install.packages("pastecs")
+#install.packages("pastecs")
+#install.packages("pspearman")
+
 library(ggplot2)
 library("corrplot")
 library("pastecs")
 library(dplyr)
+library("pspearman")
 
 
 setwd("/Users/andrescobos/statistics_master/multivariate_analysis/project")
@@ -110,6 +113,8 @@ data[data$Country=="Ukraine",]$Continent <- "Europe"
 data[data$Country=="Uzbekistan",]$Continent <- "Asia"
 ##Ultima grafica
 
+View(data[data$Continent=="America",])
+
 qualitative_vars = colnames(data)[c(3:14,16:20)]
 
 
@@ -176,4 +181,57 @@ for(i in 1:ncol(data.quan)){
 
 plot_ly(as.data.frame(data),x=~data$Infant_Mortality_1000,y=~data$Phones_1000,z=~data$GDP)
 
+
+#boxplot gdp vs continent
+boxplot(data$Population,xlab="",ylab="GDP",col="deepskyblue2")
+boxplot(data$Area_squared_km,xlab="",ylab="GDP",col="deepskyblue2")
+boxplot(data$Pop_dens_squared_km,main="GDP vs Continent",xlab="",ylab="GDP",col="deepskyblue2")
+boxplot(data$Coastline_ratio,xlab="",ylab="GDP",col="deepskyblue2")
+boxplot(data$Net_migration,xlab="",ylab="GDP",col="deepskyblue2")
+boxplot(data$Infant_Mortality_1000,xlab="",ylab="GDP",col="deepskyblue2")
+boxplot(data$GDP,xlab="",ylab="GDP",col="deepskyblue2")
+boxplot(data$Literacy,xlab="",ylab="GDP",col="deepskyblue2")
+boxplot(data$Phones_1000,xlab="",ylab="GDP",col="deepskyblue2")
+boxplot(data$Arable,xlab="",ylab="GDP",col="deepskyblue2")
+boxplot(data$Crops,xlab="",ylab="GDP",col="deepskyblue2")
+boxplot(data$Birthrate,xlab="",ylab="GDP",col="deepskyblue2")
+boxplot(data$Deathrate,xlab="",ylab="GDP",col="deepskyblue2")
+boxplot(data$Agriculture,xlab="",ylab="GDP",col="deepskyblue2")
+boxplot(data$Industry,xlab="",ylab="GDP",col="deepskyblue2")
+boxplot(data$Services,xlab="",ylab="GDP",col="deepskyblue2")
+boxplot(data$Other,xlab="",ylab="GDP",col="deepskyblue2")
+
+
+par(mfrow=c(1,2))
+
+boxplot(data$Infant_Mortality_1000,main="Infant Mortality",xlab="",col="deepskyblue2")
+boxplot(data$Phones_1000,xlab="",main="Phones per 1000",col="deepskyblue2")
+boxplot(data$Literacy,xlab="",main="Literacy",col="deepskyblue2")
+
+boxplot(data$Birthrate,xlab="",main="Birthrate",col="deepskyblue2")
+boxplot(data$Arable,xlab="",main="Arable",col="deepskyblue2")
+boxplot(data$Other,xlab="",main="Other",col="deepskyblue2")
+boxplot(data$Agriculture,xlab="",main="Agriculture",col="deepskyblue2")
+par(mfrow=c(1,2))
+
+
+summary(data$Infant_Mortality_1000)
+summary(data$Phones_1000)
+summary(data$Literacy)
+summary(data$Birthrate)
+summary(data$Arable)
+summary(data$Other)
+summary(data$Agriculture)
+
+
+
+correlationPValue <- matrix(nrow=ncol(data.quan),ncol=ncol(data.quan))
+for(i in 1:ncol(data.quan)){
+  for(j in 1:ncol(data.quan)){
+    correlationPValue[i,j]<- spearman.test(data.quan[,i],data.quan[,j])$p.value
+  }
+}
+
+colnames(correlationPValue)<-colnames(data.quan)
+rownames(correlationPValue)<-colnames(data.quan)
 
