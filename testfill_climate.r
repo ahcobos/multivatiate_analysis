@@ -114,7 +114,7 @@ qualitative_vars = colnames(data)[c(3:14,16:20)]
 
 
 ##Grafica de GDP vs Literacy
-ggplot(data = data, aes(x=GDP, y=Literacy, size=Population, color=Continent)) + geom_point(na.rm = TRUE)
+ggplot(data = data, aes(x=GDP, y=Literacy, size=Population, color=Continent)) + geom_point(na.rm = TRUE)+ ggtitle("GDP vs Literacy")
 
 ##Codigo para sacar las proporciones de industria por continente
 regionArable<-summarise(group_by(data,Continent), Arable=mean(Arable, na.rm = TRUE),Crops=mean(Crops, na.rm = TRUE),Other=mean(Other, na.rm = TRUE))
@@ -130,7 +130,10 @@ arablePlot$Values <-c(c(regionArable[1,c(2:4)]),c(regionArable[2,c(2:4)]),
 arablePlot$Values <- as.numeric(arablePlot$Values)
 
 #piechart per continent percent of terrain
-ggplot(arablePlot, aes("",Values, fill=Type, labels=Values))+geom_bar(width = 1, stat = "identity") + coord_polar("y", start=0)+facet_wrap(~Continent)+geom_text(aes(label = round(Values,2)), position = position_stack(vjust = 0.5)) 
+ggplot(arablePlot, aes("",Values, fill=Type, labels=Values))+
+  geom_bar(width = 1, stat = "identity") + coord_polar("y", start=0)+ ggtitle("Distribution of land per continent")+
+  facet_wrap(~Continent)+geom_text(aes(label = round(Values,2)), position = position_stack(vjust = 0.5)) 
+  
 
 
 
@@ -139,14 +142,15 @@ data.quan <- data[,c(3:14,16:20)]
 head(data.quan)
 data.scaled.quan<-data.frame(sapply(data.quan, function(x){(x-mean(x, na.rm = TRUE))/sd(x, na.rm = TRUE)}))
 R.data.quan <- cor(data.scaled.quan, use="complete.obs")
-corrplot(R.data.quan, type="upper", diag = FALSE, tl.col = "black" )
+corrplot(R.data.quan,number.cex=0.8, method = "number",type="upper", diag = FALSE, tl.col = "black" ,title=" 
+         Correlation")
 
 correlated_columns <- qualitative_vars[!qualitative_vars %in% c("Population","Area_squared_km", "Pop_dens_squared_km", 
                                                                 "Coastline_ratio","Crops", "Other","Industry")]
 data.correlated = data[,correlated_columns]
 #correlation vars with mean
 means = colMeans(scale(data.correlated), na.rm = TRUE)
-pairs(rbind(scale(data.correlated),means) ,pch=19,col=c(rep("deepskyblue2",dim(data.correlated)[1]),"firebrick2"), lower.panel = NULL)
+pairs( main="Util Correlation Detail",cex.labels = 1.2,rbind(scale(data.correlated),means) ,pch=19,col=c(rep("deepskyblue2",dim(data.correlated)[1]),"firebrick2"), lower.panel = NULL)
 
 
 #View(data)
