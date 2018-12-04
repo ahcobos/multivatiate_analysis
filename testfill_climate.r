@@ -1,12 +1,15 @@
 #load any required libraries
 #install.packages("pastecs")
 #install.packages("pspearman")
+#install.packages("factoextra")
+
 
 library(ggplot2)
 library("corrplot")
 library("pastecs")
 library(dplyr)
 library("pspearman")
+library("factoextra")
 
 
 setwd("/Users/andrescobos/statistics_master/multivariate_analysis/project")
@@ -81,8 +84,6 @@ valid_correlation_data_names = c("Population", "Area_squared_km", "Pop_dens_squa
                            "Coastline_ratio","Net_migration", "Infant_Mortality_1000",
                            "GDP", "Literacy", "Phones_1000", "Arable", "Crops", 
                            "Birthrate", "Deathrate", "Agriculture", "Industry", "Services")
-
-
 
 valid_correlation_data = data[,valid_correlation_data_names]
 
@@ -234,4 +235,113 @@ for(i in 1:ncol(data.quan)){
 
 colnames(correlationPValue)<-colnames(data.quan)
 rownames(correlationPValue)<-colnames(data.quan)
+
+hist(data$Continent)
+table(data$Continent)
+ggplot(data, aes(x=Continent)) + geom_histogram( stat="count", fill=("blue") )
+
+
+
+#=====================PCA=======================
+
+
+data_for_pca = data[,valid_correlation_data_names]
+
+
+n.data_for_pca <- nrow(data_for_pca)
+n.data_for_pca
+p.data_for_pca <- ncol(data_for_pca)
+p.data_for_pca
+
+
+data_for_pca[is.na(data_for_pca)] <- 0
+
+
+PCS.data_for_pca <- prcomp(data_for_pca,scale=TRUE)
+
+eigen_values.data_for_pca = PCS.data_for_pca$sdev^2
+fviz_eig(PCS.data_for_pca,ncp=12,addlabels=T,barfill="deepskyblue2",barcolor="deepskyblue4")
+
+dim(PCS.data_for_pca$rotation)
+PCS.data_for_pca$rotation
+
+plot(PCS.data_for_pca$x[,1:2],pch=19,col=colors.X)
+plot(PCS.data_for_pca$x[,1:3],pch=19,col=colors.X)
+plot(PCS.data_for_pca$x[,1:4],pch=19,col=colors.X)
+plot(PCS.data_for_pca$x[,2:3],pch=19,col=colors.X)
+plot(PCS.data_for_pca$x[,2:4],pch=19,col=colors.X)
+plot(PCS.data_for_pca$x[,3:4],pch=19,col=colors.X)
+
+#significant PC to use
+eval.data_for_pca <- PCS.data_for_pca$sdev^2
+mean(eval.data_for_pca)
+# The number of eigenvalues larger than the mean of them is 
+sum(eval.data_for_pca>mean(eval.data_for_pca))
+
+#first PC
+plot(1:p.data_for_pca,PCS.data_for_pca$rotation[,1],pch=19,col="deepskyblue2",main="Weights for the first PC")
+abline(h=0)
+text(1:p.data_for_pca,PCS.data_for_pca$rotation[,1],labels=colnames(data_for_pca),pos=1,col="firebrick2",cex=0.5)
+draw.circle(5,0,9,border="green2",lwd=3)
+draw.circle(5,0,3,border="green2",lwd=3)
+draw.circle(5,0,6,border="green2",lwd=3)
+
+
+#second PC
+plot(1:p.data_for_pca,PCS.data_for_pca$rotation[,2],pch=19,col="deepskyblue2",main="Weights for the first PC")
+abline(h=0)
+text(1:p.data_for_pca,PCS.data_for_pca$rotation[,2],labels=colnames(data_for_pca),pos=1,col="firebrick2",cex=0.5)
+
+draw.circle(5,0,9,border="green2",lwd=3)
+draw.circle(5,0,3,border="green2",lwd=3)
+draw.circle(5,0,6,border="green2",lwd=3)
+
+
+
+#third PC
+plot(1:p.data_for_pca,PCS.data_for_pca$rotation[,3],pch=19,col="deepskyblue2",main="Weights for the first PC")
+abline(h=0)
+text(1:p.data_for_pca,PCS.data_for_pca$rotation[,3],labels=colnames(data_for_pca),pos=1,col="firebrick2",cex=0.5)
+draw.circle(5,0,9,border="green2",lwd=3)
+draw.circle(5,0,3,border="green2",lwd=3)
+draw.circle(5,0,6,border="green2",lwd=3)
+
+#fourth PC
+plot(1:p.data_for_pca,PCS.data_for_pca$rotation[,4],pch=19,col="deepskyblue2",main="Weights for the first PC")
+abline(h=0)
+text(1:p.data_for_pca,PCS.data_for_pca$rotation[,4],labels=colnames(data_for_pca),pos=1,col="firebrick2",cex=0.5)
+draw.circle(5,0,9,border="green2",lwd=3)
+draw.circle(5,0,3,border="green2",lwd=3)
+draw.circle(5,0,6,border="green2",lwd=3)
+
+
+
+#5 PC
+plot(1:p.data_for_pca,PCS.data_for_pca$rotation[,5],pch=19,col="deepskyblue2",main="Weights for the first PC")
+abline(h=0)
+text(1:p.data_for_pca,PCS.data_for_pca$rotation[,5],labels=colnames(data_for_pca),pos=1,col="firebrick2",cex=0.5)
+draw.circle(5,0,9,border="green2",lwd=3)
+draw.circle(5,0,3,border="green2",lwd=3)
+draw.circle(5,0,6,border="green2",lwd=3)
+
+
+
+#6 PC
+plot(1:p.data_for_pca,PCS.data_for_pca$rotation[,6],pch=19,col="deepskyblue2",main="Weights for the first PC")
+abline(h=0)
+text(1:p.data_for_pca,PCS.data_for_pca$rotation[,6],labels=colnames(data_for_pca),pos=1,col="firebrick2",cex=0.5)
+draw.circle(5,0,9,border="green2",lwd=3)
+draw.circle(5,0,3,border="green2",lwd=3)
+draw.circle(5,0,6,border="green2",lwd=3)
+
+
+
+pairs(PCS.data_for_pca$x[,1:9],col=colors.X,pch=19,main="The first four PCs")
+
+#correlation between principal components
+corrplot(cor(data_for_pca,PCS.data_for_pca$x),is.corr=T)
+
+
+#SIGUIENTE PASO, DECIDIR QUE AGRUPACIONES HACER PARA LOS ANALISIS
+
 
