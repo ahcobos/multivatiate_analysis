@@ -10,6 +10,10 @@ library("pastecs")
 library(dplyr)
 library("pspearman")
 library("factoextra")
+library("ISLR")
+library("FactoMineR")
+library("cluster")
+
 
 
 setwd("/Users/andrescobos/statistics_master/multivariate_analysis/project")
@@ -82,7 +86,7 @@ data$Country <- trimws(data$Country)
 
 valid_correlation_data_names = c("Population", "Area_squared_km", "Pop_dens_squared_km", 
                            "Coastline_ratio","Net_migration", "Infant_Mortality_1000",
-                           "GDP", "Literacy", "Phones_1000", "Arable", "Crops", 
+                           "GDP", "Literacy", "Phones_1000", "Arable", "Crops","Other", 
                            "Birthrate", "Deathrate", "Agriculture", "Industry", "Services")
 
 valid_correlation_data = data[,valid_correlation_data_names]
@@ -256,7 +260,7 @@ p.data_for_pca
 
 data_for_pca[is.na(data_for_pca)] <- 0
 
-
+scaled_data = scale(data_for_pca)
 PCS.data_for_pca <- prcomp(data_for_pca,scale=TRUE)
 
 eigen_values.data_for_pca = PCS.data_for_pca$sdev^2
@@ -281,16 +285,16 @@ sum(eval.data_for_pca>mean(eval.data_for_pca))
 #first PC
 plot(1:p.data_for_pca,PCS.data_for_pca$rotation[,1],pch=19,col="deepskyblue2",main="Weights for the first PC")
 abline(h=0)
-text(1:p.data_for_pca,PCS.data_for_pca$rotation[,1],labels=colnames(data_for_pca),pos=1,col="firebrick2",cex=0.5)
+text(1:p.data_for_pca,PCS.data_for_pca$rotation[,1],labels=colnames(data_for_pca),pos=1,col="firebrick2",cex=1.2)
 draw.circle(5,0,9,border="green2",lwd=3)
 draw.circle(5,0,3,border="green2",lwd=3)
 draw.circle(5,0,6,border="green2",lwd=3)
 
 
 #second PC
-plot(1:p.data_for_pca,PCS.data_for_pca$rotation[,2],pch=19,col="deepskyblue2",main="Weights for the first PC")
+plot(1:p.data_for_pca,PCS.data_for_pca$rotation[,2],pch=19,col="deepskyblue2",main="Weights for the Second PC")
 abline(h=0)
-text(1:p.data_for_pca,PCS.data_for_pca$rotation[,2],labels=colnames(data_for_pca),pos=1,col="firebrick2",cex=0.5)
+text(1:p.data_for_pca,PCS.data_for_pca$rotation[,2],labels=colnames(data_for_pca),pos=1,col="firebrick2",cex=1.2)
 
 draw.circle(5,0,9,border="green2",lwd=3)
 draw.circle(5,0,3,border="green2",lwd=3)
@@ -299,17 +303,17 @@ draw.circle(5,0,6,border="green2",lwd=3)
 
 
 #third PC
-plot(1:p.data_for_pca,PCS.data_for_pca$rotation[,3],pch=19,col="deepskyblue2",main="Weights for the first PC")
+plot(1:p.data_for_pca,PCS.data_for_pca$rotation[,3],pch=19,col="deepskyblue2",main="Weights for the Third PC")
 abline(h=0)
-text(1:p.data_for_pca,PCS.data_for_pca$rotation[,3],labels=colnames(data_for_pca),pos=1,col="firebrick2",cex=0.5)
+text(1:p.data_for_pca,PCS.data_for_pca$rotation[,3],labels=colnames(data_for_pca),pos=1,col="firebrick2",cex=1.2)
 draw.circle(5,0,9,border="green2",lwd=3)
 draw.circle(5,0,3,border="green2",lwd=3)
 draw.circle(5,0,6,border="green2",lwd=3)
 
 #fourth PC
-plot(1:p.data_for_pca,PCS.data_for_pca$rotation[,4],pch=19,col="deepskyblue2",main="Weights for the first PC")
+plot(1:p.data_for_pca,PCS.data_for_pca$rotation[,4],pch=19,col="deepskyblue2",main="Weights for the fourth PC")
 abline(h=0)
-text(1:p.data_for_pca,PCS.data_for_pca$rotation[,4],labels=colnames(data_for_pca),pos=1,col="firebrick2",cex=0.5)
+text(1:p.data_for_pca,PCS.data_for_pca$rotation[,4],labels=colnames(data_for_pca),pos=1,col="firebrick2",cex=1.2)
 draw.circle(5,0,9,border="green2",lwd=3)
 draw.circle(5,0,3,border="green2",lwd=3)
 draw.circle(5,0,6,border="green2",lwd=3)
@@ -317,9 +321,9 @@ draw.circle(5,0,6,border="green2",lwd=3)
 
 
 #5 PC
-plot(1:p.data_for_pca,PCS.data_for_pca$rotation[,5],pch=19,col="deepskyblue2",main="Weights for the first PC")
+plot(1:p.data_for_pca,PCS.data_for_pca$rotation[,5],pch=19,col="deepskyblue2",main="Weights for the fifth PC")
 abline(h=0)
-text(1:p.data_for_pca,PCS.data_for_pca$rotation[,5],labels=colnames(data_for_pca),pos=1,col="firebrick2",cex=0.5)
+text(1:p.data_for_pca,PCS.data_for_pca$rotation[,5],labels=colnames(data_for_pca),pos=1,col="firebrick2",cex=1.2)
 draw.circle(5,0,9,border="green2",lwd=3)
 draw.circle(5,0,3,border="green2",lwd=3)
 draw.circle(5,0,6,border="green2",lwd=3)
@@ -329,19 +333,356 @@ draw.circle(5,0,6,border="green2",lwd=3)
 #6 PC
 plot(1:p.data_for_pca,PCS.data_for_pca$rotation[,6],pch=19,col="deepskyblue2",main="Weights for the first PC")
 abline(h=0)
-text(1:p.data_for_pca,PCS.data_for_pca$rotation[,6],labels=colnames(data_for_pca),pos=1,col="firebrick2",cex=0.5)
+text(1:p.data_for_pca,PCS.data_for_pca$rotation[,6],labels=colnames(data_for_pca),pos=1,col="firebrick2",cex=1)
 draw.circle(5,0,9,border="green2",lwd=3)
 draw.circle(5,0,3,border="green2",lwd=3)
 draw.circle(5,0,6,border="green2",lwd=3)
 
 
 
+
+
 pairs(PCS.data_for_pca$x[,1:9],col=colors.X,pch=19,main="The first four PCs")
 
-#correlation between principal components
-corrplot(cor(data_for_pca,PCS.data_for_pca$x),is.corr=T)
+#correlation between principal components method = "number"
+corrplot(method = "number",cor(data_for_pca,PCS.data_for_pca$x),is.corr=T)
 
 
 #SIGUIENTE PASO, DECIDIR QUE AGRUPACIONES HACER PARA LOS ANALISIS
+
+
+# FACTOR ANALYSIS 
+
+#NUMERO DE FACTORES A CONSIDERAR
+
+
+
+fviz_eig(PCS.data_for_pca,ncp=p,addlabels=T,barfill="deepskyblue2",barcolor="deepskyblue4")
+r <- 5
+
+M.data_for_pca <- PCS.data_for_pca$rotation[,1:r] %*% diag(PCS.data_for_pca$sdev[1:r])
+M.data_for_pca <- varimax(M.data_for_pca)
+M.data_for_pca <- loadings(M.data_for_pca)[1:p.data_for_pca,1:r]
+
+p = p.data_for_pca
+
+# The first factor appears to be an index of extraversion 
+
+plot(1:p,M.data_for_pca[,1],pch=19,col="deepskyblue2",xlab="",ylab="Weights",main="Weights for the first factor")
+abline(h=0)
+text(1:p,M.data_for_pca[,1],labels=colnames(data_for_pca),pos = 1,col="firebrick2",cex=0.65)
+
+# The second factor appears to be an index of professional conscientiousness 
+
+plot(1:p,M.data_for_pca[,2],pch=19,col="deepskyblue2",xlab="",ylab="Weights",main="Weights for the second factor")
+abline(h=0)
+text(1:p,M.data_for_pca[,2],labels=colnames(data_for_pca),pos = 1,col="firebrick2",cex=0.75)
+
+# The third factor appears to be an index of roughness 
+
+plot(1:p,M.data_for_pca[,3],pch=19,col="deepskyblue2",xlab="",ylab="Weights",main="Weights for the third factor")
+abline(h=0)
+text(1:p,M.data_for_pca[,3],labels=colnames(data_for_pca),pos = 1,col="firebrick2",cex=0.85)
+
+# The fourth factor appears to be an index of restlessness 
+
+plot(1:p,M.data_for_pca[,4],pch=19,col="deepskyblue2",xlab="",ylab="Weights",main="Weights for the fourth factor")
+abline(h=0)
+text(1:p,M.data_for_pca[,4],labels=colnames(data_for_pca),pos = 1,col="firebrick2",cex=0.95)
+
+# The fifth factor appears to be an index of friendliness
+
+plot(1:p,M.data_for_pca[,5],pch=19,col="deepskyblue2",xlab="",ylab="Weights",main="Weights for the fifth factor")
+abline(h=0)
+text(1:p,M.data_for_pca[,5],labels=colnames(data_for_pca),pos = 1,col="firebrick2",cex=0.85)
+
+
+scaled_data = scale(data_for_pca)
+Sigma.nu.data_for_pca <- diag(diag(cov(scaled_data) - M.data_for_pca %*% t(M.data_for_pca)))
+
+##################################################################################################################
+# Communalities and uniquenesses
+##################################################################################################################
+comm.data_for_pca <- diag(M.data_for_pca %*% t(M.data_for_pca))
+comm.data_for_pca
+sort(comm.data_for_pca ,decreasing=TRUE)
+
+uniq.data_for_pca <- diag(Sigma.nu.data_for_pca)
+uniq.data_for_pca
+names(uniq.data_for_pca) <- names(comm.data_for_pca)
+uniq.data_for_pca
+sort(uniq.data_for_pca,decreasing=TRUE)
+
+
+F.data_for_pca <- scaled_data %*% solve(Sigma.nu.data_for_pca) %*% M.data_for_pca %*% solve(t(M.data_for_pca) %*% solve(Sigma.nu.data_for_pca) %*% M.data_for_pca)
+pairs(F.pca,pch=19,col="deepskyblue2")
+corrplot(cor(F.data_for_pca),order="hclust")
+
+dim(F.data_for_pca)
+
+##################################################################################################################
+# Estimate the residuals
+##################################################################################################################
+
+Nu.data_for_pca <- scaled_data - F.data_for_pca %*% t(M.data_for_pca)
+corrplot(cor(Nu.data_for_pca),order="hclust")
+
+
+##################################################################################################################
+##################################################################################################################
+# Principal factor analysis
+##################################################################################################################
+##################################################################################################################
+
+R.data_for_pca <- cor(data_for_pca)
+MM <- R.data_for_pca- Sigma.nu.data_for_pca
+MM.eig <- eigen(MM)
+MM.values <- MM.eig$value
+MM.vectors <- MM.eig$vectors
+
+
+##################################################################################################################
+# Estimate the matrix M and use the varimax rotation for interpretability
+##################################################################################################################
+
+M.data_for_pfa <- MM.eig$vectors[,1:r] %*% diag(MM.eig$values[1:r])^(1/2)
+M.data_for_pfa <- varimax(M.data_for_pfa)
+M.data_for_pfa <- loadings(M.data_for_pfa)[1:p,1:r]
+
+
+
+# Compare both estimates
+
+plot(M.data_for_pca[,1],M.data_for_pfa[,1],pch=19,col="deepskyblue2",main="First factors with PCFA and PFA")
+plot(M.data_for_pca[,2],M.data_for_pfa[,2],pch=19,col="deepskyblue2",main="Second factors with PCFA and PFA")
+plot(M.data_for_pca[,3],M.data_for_pfa[,3],pch=19,col="deepskyblue2",main="Third factors with PCFA and PFA")
+plot(M.data_for_pca[,4],M.data_for_pfa[,4],pch=19,col="deepskyblue2",main="Fourth factors with PCFA and PFA")
+plot(M.data_for_pca[,5],M.data_for_pfa[,5],pch=19,col="deepskyblue2",main="Fifth factors with PCFA and PFA")
+
+
+Sigma.nu.data_for_pfa <- diag(diag(cov(scaled_data) - M.data_for_pfa %*% t(M.data_for_pfa)))
+plot(diag(Sigma.nu.data_for_pca),diag(Sigma.nu.data_for_pfa),pch=19,col="deepskyblue2",main="Noise variances with PCFA and PFA")
+
+
+##################################################################################################################
+# Communalities and uniquenesses
+##################################################################################################################
+
+comm.data_for_pfa <- diag(M.data_for_pfa %*% t(M.data_for_pfa))
+names(comm.data_for_pfa) <- colnames(scaled_data)
+comm.data_for_pfa
+sort(comm.data_for_pfa,decreasing=TRUE)
+sort(comm.data_for_pca,decreasing=TRUE)
+
+
+# With PCFA, the communalities are smaller
+uniq.data_for_pfa <- diag(Sigma.nu.data_for_pfa)
+uniq.data_for_pfa
+names(uniq.data_for_pfa) <- names(comm.data_for_pfa)
+uniq.data_for_pfa
+sort(uniq.data_for_pfa,decreasing=TRUE)
+sort(uniq.data_for_pfa,decreasing=TRUE)
+
+
+# With PCFA, the uniquenesses are smaller
+
+
+##################################################################################################################
+# Estimate the factor scores
+##################################################################################################################
+
+F.data_for_pfa <- scaled_data %*% solve(Sigma.nu.data_for_pfa) %*% M.data_for_pfa %*% solve(t(M.data_for_pfa) %*% solve(Sigma.nu.data_for_pfa) %*% M.data_for_pfa)
+pairs(F.pfa,pch=19,col="deepskyblue2")
+corrplot(cor(F.data_for_pfa),order="hclust")
+
+# See that the factors are uncorrelated
+
+# Obtain the correlation matrix between the PCFA and PFA estimates
+
+cor(F.data_for_pca,F.data_for_pfa)
+corrplot(cor(F.data_for_pca,F.data_for_pfa))
+
+##################################################################################################################
+# Estimate the residuals
+##################################################################################################################
+
+Nu.data_for_pfa <- scaled_data - F.data_for_pfa %*% t(M.data_for_pfa)
+corrplot(cor(Nu.data_for_pfa),order="hclust")
+
+
+
+# Obtain the correlation matrix between the PCFA and PFA estimates
+
+corrplot(cor(Nu.data_for_pca,Nu.data_for_pfa))
+
+
+##################################################################################################################
+# How many factors?
+##################################################################################################################
+
+# Start with one factor
+
+FA.Y.1 <- factanal(scaled_data,factors=1,rotation="varimax",scores="Bartlett")
+FA.Y.1$STATISTIC
+FA.Y.1$PVAL
+
+
+# Then, two factors
+
+FA.Y.2 <- factanal(scaled_data,factors=2,rotation="varimax",scores="Bartlett")
+FA.Y.2$STATISTIC
+FA.Y.2$PVAL
+
+# Then, three factors
+
+FA.Y.3 <- factanal(scaled_data,factors=3,rotation="varimax",scores="Bartlett")
+FA.Y.3$STATISTIC
+FA.Y.3$PVAL
+
+# Then, four factors
+
+FA.Y.4 <- factanal(scaled_data,factors=4,rotation="varimax",scores="Bartlett")
+FA.Y.4$STATISTIC
+FA.Y.4$PVAL
+
+# Then, five factors
+
+FA.Y.5 <- factanal(scaled_data,factors=5,rotation="varimax",scores="Bartlett")
+FA.Y.5$STATISTIC
+FA.Y.5$PVAL
+
+# See that the null hypothesis is always rejected. This is probably because the data is non Gaussian
+# Try with five factors as in the previous cases
+
+##################################################################################################################
+# Get the loading matrix
+##################################################################################################################
+
+M.data_for_mle <- loadings(FA.Y.5)[1:p,1:r]
+
+# Compare with PFA estimates
+
+plot(M.data_for_pfa[,1],M.data_for_mle[,1],pch=19,col="deepskyblue2",main="First factors with PFA and MLE")
+plot(M.data_for_pfa[,2],M.data_for_mle[,2],pch=19,col="deepskyblue2",main="Second factors with PFA and MLE")
+plot(M.data_for_pfa[,3],M.data_for_mle[,3],pch=19,col="deepskyblue2",main="Third factors with PFA and MLE")
+plot(M.data_for_pfa[,3],M.data_for_mle[,4],pch=19,col="deepskyblue2",main="Third factors with PFA and MLE")
+plot(M.data_for_pfa[,3],M.data_for_mle[,5],pch=19,col="deepskyblue2",main="Third factors with PFA and MLE")
+plot(M.data_for_pfa[,4],M.data_for_mle[,3],pch=19,col="deepskyblue2",main="Fourth factors with PFA and MLE")
+plot(M.data_for_pfa[,5],M.data_for_mle[,4],pch=19,col="deepskyblue2",main="Fifth factors with PFA and MLE")
+
+
+
+##################################################################################################################
+# Estimate the covariance matrix of the errors
+##################################################################################################################
+
+Sigma.nu.data_for_mle <- diag(diag(cov(scaled_data) - M.data_for_mle %*% t(M.data_for_mle)))
+plot(diag(Sigma.nu.data_for_pfa),diag(Sigma.nu.data_for_mle),pch=19,col="deepskyblue2",main="Noise variances with PFA and MLE")
+
+
+
+# There are some small differences
+
+##################################################################################################################
+# Communalities and uniquenesses
+##################################################################################################################
+
+comm.data_for_mle <- diag(M.data_for_mle %*% t(M.data_for_mle))
+names(comm.data_for_mle) <- colnames(scaled_data)
+comm.data_for_mle
+sort(comm.data_for_mle,decreasing=TRUE)
+sort(comm.data_for_pfa,decreasing=TRUE)
+
+# The communalities are quite close
+
+uniq.data_for_mle <- diag(Sigma.nu.data_for_mle)
+uniq.data_for_mle
+names(uniq.data_for_mle) <- names(comm.data_for_mle)
+uniq.data_for_mle
+sort(uniq.data_for_mle,decreasing=TRUE)
+sort(uniq.data_for_pfa,decreasing=TRUE)
+
+##################################################################################################################
+# Estimate the factor scores
+##################################################################################################################
+
+F.data_for_mle <- scaled_data %*% solve(Sigma.nu.data_for_mle) %*% M.data_for_mle %*% solve(t(M.data_for_mle) %*% solve(Sigma.nu.data_for_mle) %*% M.data_for_mle)
+pairs(F.data_for_mle,pch=19,col="deepskyblue2")
+corrplot(cor(F.data_for_mle),order="hclust")
+
+
+
+dim(F.data_for_pfa)
+dim(F.data_for_mle)
+cor(F.data_for_pfa,F.data_for_mle)
+corrplot(cor(F.data_for_pfa,F.data_for_mle))
+
+
+##################################################################################################################
+# Estimate the residuals
+##################################################################################################################
+
+
+
+Nu.data_for_mle <- scaled_data - F.data_for_mle %*% t(M.data_for_mle)
+corrplot(cor(Nu.data_for_mle),order="hclust")
+
+# As before, the residuals show some minor correlation that the model is not able to explain
+
+# Obtain the correlation matrix between the PFA and MLE estimates
+
+corrplot(cor(Nu.data_for_pfa,Nu.data_for_mle))
+
+##### CLUSTER ANALYSIS
+
+PCS.data_for_pca
+
+
+plot(PCS.data_for_pca$x[,1:2],pch=20,col="deepskyblue2")
+kmeans.data_for_pca <- kmeans(scaled_data ,centers=2,iter.max=1000,nstart=100)
+
+colors.kmeans.data_for_pca <- c("deepskyblue2","firebrick2")[kmeans.data_for_pca$cluster]
+plot(PCS.data_for_pca$x[,1:2],pch=20,col=colors.kmeans.data_for_pca)
+
+
+
+fviz_nbclust(scaled_data,kmeans,method="wss",k.max=10)
+fviz_nbclust(scaled_data,kmeans,method="silhouette",k.max=10)
+fviz_nbclust(scaled_data,kmeans,method="gap",k.max=10,nboot=100)
+
+
+kmeans.data_for_pca <- kmeans(scaled_data,centers=4,iter.max=1000,nstart=100)
+
+colors.kmeans.data_for_pca <- c("deepskyblue2","firebrick2","orange","chartreuse")[kmeans.data_for_pca$cluster]
+plot(PCS.data_for_pca$x[,1:2],pch=20,col=colors.kmeans.data_for_pca)
+
+fviz_cluster(kmeans.data_for_pca,data=PCS.data_for_pca$x[,1:2])
+
+##################################################################################################################
+# Silhouette plot for the solution
+
+sil.kmeans.data_for_pca <- silhouette(kmeans.data_for_pca$cluster,dist(scaled_data,"euclidean"))
+plot(sil.kmeans.data_for_pca,col="deepskyblue2")
+
+
+
+##################################################################################################################
+# Perform k-means clustering for the principal components of the data set
+##################################################################################################################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
