@@ -481,8 +481,7 @@ uniq.data_for_pfa
 names(uniq.data_for_pfa) <- names(comm.data_for_pfa)
 uniq.data_for_pfa
 sort(uniq.data_for_pfa,decreasing=TRUE)
-sort(uniq.data_for_pfa,decreasing=TRUE)
-
+sort(uniq.data_for_pca,decreasing=TRUE)
 
 # With PCFA, the uniquenesses are smaller
 
@@ -635,9 +634,10 @@ corrplot(cor(Nu.data_for_pfa,Nu.data_for_mle))
 
 ##### CLUSTER ANALYSIS
 
+#
 PCS.data_for_pca
 
-
+#matrix original scaled_data
 plot(PCS.data_for_pca$x[,1:2],pch=20,col="deepskyblue2")
 kmeans.data_for_pca <- kmeans(scaled_data ,centers=2,iter.max=1000,nstart=100)
 
@@ -651,7 +651,7 @@ fviz_nbclust(scaled_data,kmeans,method="silhouette",k.max=10)
 fviz_nbclust(scaled_data,kmeans,method="gap",k.max=10,nboot=100)
 
 
-kmeans.data_for_pca <- kmeans(scaled_data,centers=4,iter.max=1000,nstart=100)
+kmeans.data_for_pca <- kmeans(scaled_data,centers=3,iter.max=1000,nstart=100)
 
 colors.kmeans.data_for_pca <- c("deepskyblue2","firebrick2","orange","chartreuse")[kmeans.data_for_pca$cluster]
 plot(PCS.data_for_pca$x[,1:2],pch=20,col=colors.kmeans.data_for_pca)
@@ -667,22 +667,206 @@ plot(sil.kmeans.data_for_pca,col="deepskyblue2")
 
 
 ##################################################################################################################
-# Perform k-means clustering for the principal components of the data set
+# Perform k-means clustering for the principal components of the NCI60 data set
+##################################################################################################################
+
+# We take 21 PCs as in Topic 2 and K=4
+
+kmeans.PCS.data_for_pca <- kmeans(PCS.data_for_pca$x[,1:5],centers=3,iter.max=1000,nstart=100)
+fviz_cluster(kmeans.PCS.data_for_pca,data=PCS.data_for_pca$x[,1:2])
+
+
+# Compute the silhouette
+
+sil.PCS.data_for_pca <- silhouette(kmeans.PCS.data_for_pca$cluster,dist(scaled_data,"euclidean"))
+plot(sil.PCS.data_for_pca,col="deepskyblue2")
+
+# Run PAM
+
+pam.data_for_pca <- pam(scaled_data,k=4,metric="manhattan",stand=FALSE)
+colors.pam.data_for_pca <- c("deepskyblue2","firebrick2","orange","chartreuse")[pam.data_for_pca$cluster]
+plot(PCS.data_for_pca$x[,1:2],pch=20,col=colors.pam.data_for_pca)
+
+# Have a look at the silhouette
+sil.pam.data_for_pca <- silhouette(pam.data_for_pca$cluster,dist(scaled_data,method="manhattan"))
+plot(sil.pam.data_for_pca,col="deepskyblue2")
+
+
+
+
+##################################################################################################################
+# Perform CLARA clustering for the NCI60 data set
+##################################################################################################################
+
+##################################################################################################################
+# Fix K=4 clusters as in Kmeans
+
+clara.data_for_pca<- clara(scaled_data,k=3,metric="manhattan",stand=FALSE,samples=100,sampsize=32)
+
+# Make a plot of the first two PCs split in these four clusters
+
+colors.clara.data_for_pca<- c("deepskyblue2","firebrick2","orange","chartreuse")[clara.data_for_pca$cluster]
+plot(PCS.data_for_pca$x[,1:2],pch=20,col=colors.clara.data_for_pca)
+
+# Another way to do the plot
+
+fviz_cluster(clara.data_for_pca,data=PCS.data_for_pca$x[,1:2])
+
+# Have a look at the silhouette
+
+sil.clara.data_for_pca <- silhouette(clara.data_for_pca$cluster,dist(scaled_data,method="manhattan"))
+plot(sil.clara.data_for_pca,col="deepskyblue2")
+
+
+##################################################################################################################
+# Perform k-medoids clustering with mixed variables for the Credit data set
+##################################################################################################################
+dist.Gower.data_for_pca <- daisy(scaled_data,metric="gower")
+summary(dist.Gower.data_for_pca)
+
+mat.dist.Gower.data_for_pca <- as.matrix(dist.Gower.data_for_pca)
+scaled_data[which(mat.dist.Gower.data_for_pca==min(mat.dist.Gower.data_for_pca[mat.dist.Gower.data_for_pca!=min(mat.dist.Gower.data_for_pca)]),arr.ind = TRUE)[1,],]
+
+# Find the most distant clients with the Gower distance
+
+scaled_data[which(mat.dist.Gower.data_for_pca==max(mat.dist.Gower.data_for_pca[mat.dist.Gower.data_for_pca!=max(mat.dist.Gower.data_for_pca)]),arr.ind = TRUE)[1,],]
+
+
+kmedoids.data_for_pca <- pam(mat.dist.Gower.data_for_pca,k=3,diss=TRUE)
+
+# Medoids
+
+scaled_data[kmedoids.data_for_pca$medoids,]
+
+# Have a look at the silhouette
+
+sil.kmedoids.data_for_pca <- silhouette(kmedoids.data_for_pca$cluster,mat.dist.Gower.data_for_pca)
+plot(sil.kmedoids.data_for_pca,col="deepskyblue2")
+summary(sil.kmedoids.data_for_pca)
+
+
+##################################################################################################################
+##################################################################################################################
+# Hierarchical clustering analysis for the NCI60 data set
+##################################################################################################################
 ##################################################################################################################
 
 
+dist.data_for_pca <- daisy(scaled_data,metric="manhattan",stand=FALSE)
+single.data_for_pca <- hclust(dist.data_for_pca,method="single")
+
+
+plot(single.data_for_pca,main="Single linkage",cex=0.8)
+rect.hclust(single.data_for_pca,k=20,border="deepskyblue2")
+
+
+cutree(single.data_for_pca,4)
+table(cutree(single.data_for_pca,4))
+
+
+sil.single.data_for_pca <- silhouette(cutree(single.data_for_pca,20),dist.data_for_pca)
+plot(sil.single.data_for_pca)
+
+##################################################################################################################
+# Complete linkage
+
+
+complete.data_for_pca <- hclust(dist.data_for_pca,method="complete")
+
+
+plot(complete.data_for_pca,main="Complete linkage",cex=0.8)
+rect.hclust(complete.data_for_pca,k=5,border="deepskyblue2")
+data[137,]
+
+colors.single.data_for_pca<- c("deepskyblue2","firebrick2","orange","chartreuse")[cutree(complete.data_for_pca,4)]
+plot(PCS.data_for_pca$x[,1:2],pch=20,col=colors.single.data_for_pca)
+
+
+sil.single.data_for_pca <- silhouette(cutree(complete.data_for_pca,5),dist.data_for_pca)
+plot(sil.single.data_for_pca)
 
 
 
 
+##################################################################################################################
+# Average linkage
+
+average.data_for_pca <- hclust(dist.data_for_pca,method="average")
+
+# Plot dendogram of the solution and take k=4 as with Kmeans
+
+plot(average.data_for_pca,main="Average linkage",cex=0.8)
+rect.hclust(average.data_for_pca,k=5,border="deepskyblue2")
+
+# See the assignment
+
+cutree(average.data_for_pca,5)
+table(cutree(average.data_for_pca,5))
+
+# Make a plot of the first two PCs split in these four clusters
+
+colors.average.data_for_pca <- c("deepskyblue2","firebrick2","orange","chartreuse")[cutree(average.data_for_pca,5)]
+plot(PCS.data_for_pca$x[,1:2],pch=20,col=colors.average.data_for_pca)
+
+# Have a look at the silhouette
+
+sil.average.data_for_pca <- silhouette(cutree(average.data_for_pca,5),dist.data_for_pca)
+plot(sil.average.data_for_pca)
 
 
 
 
+##ward
 
 
 
+ward.data_for_pca <- hclust(dist.data_for_pca,method="ward.D2")
+
+# Plot dendogram of the solution and take k=4 as with Kmeans
+
+plot(ward.data_for_pca,main="Ward linkage",cex=0.8)
+rect.hclust(ward.data_for_pca,k=3,border="deepskyblue2")
+
+# See the assignment
+
+cutree(ward.data_for_pca,4)
+table(cutree(ward.data_for_pca,4))
+
+# Make a plot of the first two PCs split in these four clusters
+
+colors.ward.data_for_pca <- c("deepskyblue2","firebrick2","orange","chartreuse")[cutree(ward.data_for_pca,3)]
+plot(PCS.data_for_pca$x[,1:2],pch=20,col=colors.ward.data_for_pca)
+
+# Have a look at the silhouette
+
+sil.ward.data_for_pca <- silhouette(cutree(ward.data_for_pca,3),dist.data_for_pca)
+plot(sil.ward.data_for_pca)
+
+# This solution is slightly better
 
 
+##################################################################################################################
+# Divisive hierarchical clustering analysis for the NCI60 data set
+##################################################################################################################
 
+Diana.data_for_pca <- diana(scaled_data,metric="manhattan")
+
+# Plot dendogram of the solution
+
+plot(Diana.data_for_pca,main="DIANA")
+
+# Hit two times Return to see the dendogram
+# Take k=4
+
+rect.hclust(Diana.data_for_pca,k=3,border="deepskyblue2")
+
+# Make a plot of the first two PCs split in these four clusters
+
+colors.Diana.data_for_pca <- c("deepskyblue2","firebrick2","orange","chartreuse")[cutree(Diana.data_for_pca,3)]
+plot(PCS.data_for_pca$x[,1:2],pch=20,col=colors.Diana.data_for_pca)
+
+# Have a look at the silhouette
+
+sil.Diana.data_for_pca <- silhouette(cutree(Diana.data_for_pca,3),dist.data_for_pca)
+plot(sil.Diana.data_for_pca)
 
